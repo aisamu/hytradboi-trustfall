@@ -1,0 +1,70 @@
+#+title: HYTRADBOI: How to query (almost) everything, Steampipe version
+
+Coincidentally, at around the same time I watched [[https://github.com/obi1kenobi][@obi1kenobi]]'s brilliant [[https://www.hytradboi.com/2022/how-to-query-almost-everything][How to query (almost) everything]], I ran into https://steampipe.io.
+
+At least on the tin, they appear to be tackling the same problem through different angles, so I figured I'd try replicating the [[file:query.gql][talk's demo query]] using SQL.
+
+Luckily, all the required resolvers/plugins already existed!
+You can see the final result [[file:hytradboi-demo.sql][here]].
+
+*** Requirements
+- [[https://steampipe.io/downloads][Steampipe]]
+  #+begin_src
+$> steampipe --version
+steampipe version 0.16.4
+  #+end_src
+- [[https://hub.steampipe.io/plugins][Steampipe plugins]]: =github= and =hackernews=
+  #+begin_src
+$> steampipe plugin list
++---------------------------------------------------+---------+-------------+
+| Name                                              | Version | Connections |
++---------------------------------------------------+---------+-------------+
+| hub.steampipe.io/plugins/turbot/github@latest     | 0.21.0  | github      |
+| hub.steampipe.io/plugins/turbot/hackernews@latest | 0.5.0   | hackernews  |
++---------------------------------------------------+---------+-------------+
+  #+end_src
+- [[https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token][A Github Personal Access Token]]
+
+*** Run it
+#+begin_src
+GITHUB_TOKEN=<token-contents> steampipe query hytradboi-demo.sql
+#+end_src
+
+Sample output:
+#+begin_src
++----------+----------------------------------------------------+-----------------------------+----------------------------------------------------+--------------------+---------------------------------------------------------+-----------------------------------------------+
+| hn_score | repo_url                                           | workflow                    | workflow_path                                      | job                | step                                                    | action                                        |
++----------+----------------------------------------------------+-----------------------------+----------------------------------------------------+--------------------+---------------------------------------------------------+-----------------------------------------------+
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | test-gradle-plugin | "Run tests"                                             | "./.github/actions/run-samples"               |
+| 167      | https://github.com/vscode-org-mode/vscode-org-mode | Create Release              | .github/workflows/release.yml                      | build              | <null>                                                  | "Azure/functions-action@v1"                   |
+| 50       | https://github.com/arithran/vim-pizza              | Samples Java Play Framework | .github/workflows/samples-java-play-framework.yaml | build              | "Build release binary"                                  | "actions-rs/cargo@v1"                         |
+| 287      | https://github.com/p8952/bocker                    | Release                     | .github/workflows/rust.yml                         | generate-docs      | "Install ${{ matrix.rust }} toolchain"                  | "actions-rs/toolchain@v1"                     |
+| 109      | https://github.com/OpenAPITools/openapi-generator  | Samples PHP                 | .github/workflows/samples-php.yaml                 | samples            | "Cache maven dependencies"                              | "actions/cache@v3"                            |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | test-gradle-plugin | "Checkout sources"                                      | "actions/checkout@v2"                         |
+| 167      | https://github.com/vscode-org-mode/vscode-org-mode | Create Release              | .github/workflows/release.yml                      | build              | <null>                                                  | "actions/checkout@v3"                         |
+| 50       | https://github.com/arithran/vim-pizza              | Samples Java Play Framework | .github/workflows/samples-java-play-framework.yaml | build              | <null>                                                  | "actions/download-artifact@v2"                |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | build              | "Download openapi-generator-cli.jar artifact"           | "actions/download-artifact@v3"                |
+| 109      | https://github.com/OpenAPITools/openapi-generator  | Samples PHP                 | .github/workflows/samples-php.yaml                 | samples            | "Setup .NET Core"                                       | "actions/setup-dotnet@v3.0.1"                 |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | test-gradle-plugin | <null>                                                  | "actions/setup-dotnet@v3.0.2"                 |
+| 167      | https://github.com/vscode-org-mode/vscode-org-mode | Create Release              | .github/workflows/release.yml                      | build              | <null>                                                  | "actions/setup-go@v2"                         |
+| 21       | https://github.com/dscho/leave-me-alone-github-app | Create Release              | .github/workflows/release.yml                      | build              | <null>                                                  | "actions/setup-java@v3"                       |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | build              | <null>                                                  | "actions/upload-artifact@v2.2.4"              |
+| 109      | https://github.com/OpenAPITools/openapi-generator  | Samples PHP                 | .github/workflows/samples-php.yaml                 | samples            | "Publish unit test reports"                             | "actions/upload-artifact@v3"                  |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | test-gradle-plugin | <null>                                                  | "codecov/codecov-action@v1"                   |
+| 167      | https://github.com/vscode-org-mode/vscode-org-mode | Create Release              | .github/workflows/release.yml                      | build              | "Setup DocFX"                                           | "crazy-max/ghaction-chocolatey@v2"            |
+| 167      | https://github.com/vscode-org-mode/vscode-org-mode | Samples PHP                 | .github/workflows/samples-php.yaml                 | publish            | <null>                                                  | "dart-lang/setup-dart@v1"                     |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | build              | <null>                                                  | "dorny/test-reporter@v1"                      |
+| 109      | https://github.com/OpenAPITools/openapi-generator  | Samples PHP                 | .github/workflows/samples-php.yaml                 | samples            | "Install Gradle wrapper"                                | "eskatos/gradle-command-action@v2"            |
+| 50       | https://github.com/arithran/vim-pizza              | Release                     | .github/workflows/rust.yml                         | test-gradle-plugin | "Perform CodeQL Analysis"                               | "github/codeql-action/analyze@v2"             |
+| 248      | https://github.com/gui-cs/Terminal.Gui             | Create Release              | .github/workflows/release.yml                      | build              | "Autobuild"                                             | "github/codeql-action/autobuild@v2"           |
+| 21       | https://github.com/dscho/leave-me-alone-github-app | Create Release              | .github/workflows/release.yml                      | build              | "Initialize CodeQL"                                     | "github/codeql-action/init@v2"                |
+| 50       | https://github.com/arithran/vim-pizza              | Release                     | .github/workflows/rust.yml                         | build              | "Determine Version"                                     | "gittools/actions/gitversion/execute@v0.9.13" |
+| 109      | https://github.com/OpenAPITools/openapi-generator  | Samples PHP                 | .github/workflows/samples-php.yaml                 | samples            | "Install and calculate the new version with GitVersion" | "gittools/actions/gitversion/setup@v0.9.13"   |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | test-gradle-plugin | "Publish"                                               | "peaceiris/actions-gh-pages@v3"               |
+| 167      | https://github.com/vscode-org-mode/vscode-org-mode | Create Release              | .github/workflows/release.yml                      | build              | <null>                                                  | "ruby/setup-ruby@v1"                          |
+| 287      | https://github.com/p8952/bocker                    | Gradle tests (Java samples) | .github/workflows/gradle-test.yaml                 | CodeQL-Build       | "Setup PHP with tools"                                  | "shivammathur/setup-php@v2"                   |
+| 50       | https://github.com/arithran/vim-pizza              | Release                     | .github/workflows/rust.yml                         | build              | "Create Test Coverage Badge"                            | "simon-k/dotnet-code-coverage-badge@v1.0.0"   |
+| 109      | https://github.com/OpenAPITools/openapi-generator  | Samples PHP                 | .github/workflows/samples-php.yaml                 | samples            | "Release"                                               | "softprops/action-gh-release@v1"              |
+| 176      | https://github.com/rvaiya/warpd                    | Release                     | .github/workflows/rust.yml                         | test-gradle-plugin | "Upload binaries to release"                            | "svenstaro/upload-release-action@v2"          |
++----------+----------------------------------------------------+-----------------------------+----------------------------------------------------+--------------------+---------------------------------------------------------+-----------------------------------------------+
+#+end_src
